@@ -15,6 +15,8 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 # chat & v2
 add_executable( chat "examples/chat/main.cpp" )
 add_executable( chatv2 "examples/chatv2/main.cpp")
+add_executable( tenNode "examples/tenNode/main.cpp")
 
 target_link_libraries( chat ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( chatv2 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( tenNode ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )

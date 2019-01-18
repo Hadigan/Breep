@@ -1,0 +1,57 @@
+version: '2'
+
+networks: 
+  hangtian:
+
+services:
+
+  node1.arclab.zju.edu.cn:
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile2
+    image: hangtian:base
+    container_name: node1.arclab.zju.edu.cn
+    networks: 
+      - hangtian
+    command: /hangtian/build/chat 20001 node1
+  
+  node2.arclab.zju.edu.cn:
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile2
+    image: hangtian:base
+    container_name: node2.arclab.zju.edu.cn
+    networks: 
+      - hangtian
+    command: /hangtian/build/chat 20002 node1.arclab.zju.edu.cn 20001 node2
+  
+  node3.arclab.zju.edu.cn:
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile2
+    image: hangtian:base
+    container_name: node3.arclab.zju.edu.cn
+    networks: 
+      - hangtian
+    command: /hangtian/build/chat 20003 node1.arclab.zju.edu.cn 20001 node3
+  
+  node4.arclab.zju.edu.cn:
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile2
+    image: hangtian:base
+    container_name: node4.arclab.zju.edu.cn
+    networks: 
+      - hangtian
+    command: /hangtian/build/chat 20004 node1.arclab.zju.edu.cn 20001 node4
+  
+  node5.arclab.zju.edu.cn:
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile2
+    image: hangtian:base
+    container_name: node5.arclab.zju.edu.cn
+    networks: 
+      - hangtian
+    command: /hangtian/build/chat 20005 node1.arclab.zju.edu.cn 20001 node5
+    

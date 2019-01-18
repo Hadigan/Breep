@@ -10,34 +10,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/**
- * @file chat/main.cpp
- * @author Lucas Lazare
- */
-
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <boost/uuid/uuid_io.hpp>
-#include <map>
+
 #include <breep/network/tcp.hpp>
-#include <string>
-
-std::map<std::string, breep::tcp::peer> nodes;
-const char* getAddr(char* hostName, char* str, int len) {
-    char   *ptr, **pptr;
-    struct hostent *hptr;
-    ptr = hostName;
-
-    if((hptr = gethostbyname(ptr)) == NULL)
-    {
-        printf(" gethostbyname error for host:%s\n", ptr);
-        return NULL;
-    } else 
-    {
-        return inet_ntop(hptr->h_addrtype, hptr->h_addr, str, len);
-    }
-}
 
 class timed_message {
 public:
@@ -54,37 +32,8 @@ public:
 		std::cout << '[' << std::string(ctime(&now)).substr(14,5) << "] " << source.id_as_string().substr(0, 4) << ": ";
 
 		// prints what he sent.
-		//ABCDEname
-		if (data_size >= 5)
-		{
-			if ((int)data[0] == 65 &&
-				(int)data[1] == 66 &&
-				(int)data[2] == 67 &&
-				(int)data[3] == 68 &&
-				(int)data[4] == 69)
-			{
-
-				data = data + 5;
-				std::cout << "recieve name: ";
-				data_size -= 5;
-				char *nodeNameT = (char *)malloc(data_size * sizeof(char));
-				size_t dataSizeT = data_size;
-				for (; data_size > 0; --data_size)
-				{
-					nodeNameT[dataSizeT - data_size] =  static_cast<char>(*data++);
-				}
-				std::cout<< std::endl;
-				nodes.insert(std::pair<std::string, breep::tcp::peer>(std::string(nodeNameT, dataSizeT), source));
-                
-				// nodes[std::string(nodeNameT, dataSizeT)] = source;
-			}
-			else
-			{
-				for (; data_size > 0; --data_size)
-				{
-					std::cout << static_cast<char>(*data++);
-				}
-			}
+		for (; data_size > 0 ; --data_size) {
+			std::cout << static_cast<char>(*data++);
 		}
 		std::cout << std::endl;
 		// we could reply directly here by using the peer_manager passed as parameter.
@@ -99,52 +48,26 @@ private:
  * This method will get called whenever a peer connects // disconnects
  * (connection listeners can be used as disconnection listeners and vice-versa)
  */
-void connection_disconnection(breep::tcp::peer_manager &peer_manager, const breep::tcp::peer &peer)
-{
-    if (peer.is_connected())
-    {
-        // someone connected
-        std::cout << peer.id_as_string().substr(0, 4) << " connected!" << std::endl;
-        peer_manager.send_to(peer, std::string("ABCDE") + std::string(peer_manager.nodeName));
-    }
-    else
-    {
-        // someone disconnected
-        //这里需要根据peer的id找到node中的索引  删除。
-        std::cout << peer.id_as_string().substr(0, 4) << " disconnected" << std::endl;
-        for (auto &x : nodes)
-        {
-            if (x.second.id_as_string().compare(peer.id_as_string()) == 0)
-            {
-                nodes.erase(x.first);
-                break;
-            }
-        }
-    }
-}
-
-void sendTo(breep::tcp::peer_manager& peer_manager, std::string nodeName, const std::string data)
-{
-    for (auto &x : nodes)
-    {
-        if (x.first.compare(nodeName) == 0)
-        {
-            peer_manager.send_to(x.second, data);
-        }
-    }
+void connection_disconnection(breep::tcp::peer_manager& /* peer_manager */, const breep::tcp::peer& peer) {
+	if (peer.is_connected()) {
+		// someone connected
+		std::cout << peer.id_as_string().substr(0, 4) << " connected!" << std::endl;
+	} else {
+		// someone disconnected
+		std::cout << peer.id_as_string().substr(0, 4) << " disconnected" << std::endl;
+	}
 }
 
 int main(int argc, char* argv[]) {
 
-	if (argc != 3 && argc != 5) {
+	if (argc != 2 && argc != 4) {
 		std::cout << "Usage: " << argv[0] << " <hosting port> [<target ip> <target port>]" << std::endl;
 		return 1;
 	}
-	char *str = (char*)malloc(32*sizeof(char));
-	char *nodeName = (char*)malloc(32*sizeof(char));
+
 	// taking the local hosting port as parameter.
 	breep::tcp::peer_manager peer_manager(static_cast<unsigned short>(atoi(argv[1])));
-	
+
 	// disabling logging.
 	peer_manager.set_log_level(breep::log_level::none);
 
@@ -156,19 +79,12 @@ int main(int argc, char* argv[]) {
 	breep::listener_id dc_listener_id = peer_manager.add_disconnection_listener(&connection_disconnection);
 
 
-	if (argc == 3) {
+	if (argc == 2) {
 		// only hosting
 		peer_manager.run();
-		nodeName = argv[2];
-		peer_manager.nodeName = nodeName;
 	} else {
-		nodeName = argv[4];
-		peer_manager.nodeName = nodeName;
 		// connecting to a remote peer.                                           v− address in string format (v4 or v6)
-		sleep(3);
-		getAddr(argv[2], str, 32);
-		std::cout<<str<<std::endl;
-		boost::asio::ip::address address = boost::asio::ip::address::from_string(str);
+		boost::asio::ip::address address = boost::asio::ip::address::from_string(argv[2]);
 		//                                                    target port -v
 		if (!peer_manager.connect(address, static_cast<unsigned short>(atoi(argv[3])))) {
 			std::cout << "Connection failed" << std::endl;
@@ -177,37 +93,21 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	std::string data;
-	std::string node1 = std::string("node2");
-	data = std::string(nodeName);
+	std::string ans;
 	while(true) {
-		// std::getline(std::cin, ans);
+		std::getline(std::cin, ans);
 
-		// if (ans == "/q") {
-		// 	std::cout << "Leaving..." << std::endl;
-		// 	peer_manager.disconnect();
-		// 	break;
-		// } else {
-		// 	peer_manager.send_to_all(nodeName);
-		// }
-		sleep(10);
-		if (std::string(peer_manager.nodeName).compare(node1) != 0)
-		{
-			// for (auto &x : nodes)
-			// {
-			// 	if (x.first.compare(node1) == 0) {
-			// 		peer_manager.send_to(x.second, data);
-			// 	}
-			// }
-            sendTo(peer_manager, node1, data);
+		if (ans == "/q") {
+			std::cout << "Leaving..." << std::endl;
+			peer_manager.disconnect();
+			break;
+		} else {
+			peer_manager.send_to_all(ans);
 		}
-		// peer_manager.send_to_all(data);
 	}
 
 	// this is not obligatory, as the peer_manager is going out of scope anyway
 	peer_manager.remove_data_listener(da_listener_id);
 	peer_manager.remove_connection_listener(co_listener_id);
 	peer_manager.remove_disconnection_listener(dc_listener_id);
-	free(str);
-	free(nodeName);
 }

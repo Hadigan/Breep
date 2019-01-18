@@ -75,6 +75,8 @@ namespace breep {
 		using peer = typename io_manager::peer;
 		using peer_manager = basic_peer_manager<io_manager>;
 
+		char *nodeName;
+
 		static const unsigned short default_port = 3479;
 		using network_command_handler = void (peer_manager::*)(const peer&, const std::vector<uint8_t>&);
 

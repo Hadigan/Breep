@@ -1,0 +1,6 @@
+FROM breep:base
+RUN rm -rf /hangtian
+COPY ./ /hangtian
+RUN cd /hangtian && mkdir build && cd build && cmake .. && make
+RUN cd / && git clone -b linux https://github.com/meilier/pca.git
+RUN cd /pca && make clean && make

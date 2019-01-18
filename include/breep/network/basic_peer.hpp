@@ -49,7 +49,7 @@ namespace breep {
 			    typename io_manager::data_type(data)
 			)
 		{}
-
+        std::string nodeName;
 		/**
 	 	 * @since 0.1.0
 		 */
